@@ -1,0 +1,35 @@
+
+spring:
+  devtools:
+    restart:
+      additional-paths: resources/**,static/**,templates/**
+  datasource:
+    url: jdbc:postgresql://localhost/dgrc
+    username: 5yl
+    password: 123
+    driverClassName: org.postgresql.Driver
+    platform: postgres
+  jpa:
+    show_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    # database-platform: cn.luutqf.springboot.dialect.JsonbPostgresDialect
+    hibernate:
+      ddl-auto: update  # none: 关闭hibernate的自动创建表结构的机制
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        hbm2ddl.auto: update
+        jdbc.lob.non_contextual_creation: true
+        format_sql: true
+        temp:
+          # 兼容SpringBoot2.X, 关闭 Hibernate尝试验证PostgreSQL的CLOB特性
+          use_jdbc_metadata_defaults: false
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML5
+    encoding: UTF-8
+    cache: false
+    servlet:
+      content-type: text/html
+

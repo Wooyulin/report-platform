@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>生产报表</title>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://unpkg.com/bootstrap-table@1.15.3/dist/bootstrap-table.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.15.3/dist/bootstrap-table.min.css">
+    <script src="https://cdn.bootcss.com/bootstrap-table/1.15.4/locale/bootstrap-table-zh-CN.min.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap-table/1.15.4/extensions/export/bootstrap-table-export.min.js"></script>
+    <script src="https://cdn.bootcss.com/TableExport/5.2.0/js/tableexport.min.js"></script>
+</head>
+<body>
+<div class="panel-body" style="padding-bottom:0px;">
+    <div class="panel panel-default">
+        <div class="panel-heading">查询条件</div>
+        <div class="panel-body">
+            <form id="formSearch" class="form-horizontal">
+                <div class="form-group" style="margin-top:15px">
+                    <label class="control-label col-sm-1" for="txt_search_departmentname">部门名称</label>
+                    <div class="col-sm-1">
+                        <input type="text" class="form-control" id="txt_search_departmentname">
+                    </div>
+                    <label class="control-label col-sm-1" for="txt_search_statu">状态</label>
+                    <div class="col-sm-1">
+                        <input type="text" class="form-control" id="txt_search_statu">
+                    </div>
+                    <div class="col-sm-4" style="text-align:left;">
+                        <button type="button" style="margin-left:50px" id="btn_query" class="btn btn-primary">查询</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <table id="tb_departments" class="table text-nowrap"></table>
+</div>
+
+<script >
+
+$(function () {
+    //1.初始化Table
+    // var oTable = new TableInit();
+    // oTable.Init();
+    //2.初始化Button的点击事件
+    var oButtonInit = new ButtonInit();
+    oButtonInit.Init();
+});
+var MassTblInit = function () {
+    var oMassTblInit = new Object();
+
+    oMassTblInit.Init = function (){
+        $.ajax({
+            url : '/prod/getProdTitle',//获取动态的列名数据url
+            type : 'get',
+            dataType : "json",
+            data : {
+            },
+            async : false,
+            success : function(returnValue) {
+                //2.创建一个初始的column
+                mycolumn= [
+                    [{
+                        field: 'date',
+                        title: '日期',
+                        align: 'center',
+                        valign: 'middle',
+                        colspan: 1,
+                        rowspan: 2
+                    },{
+                        field: 'addr',
+                        title: '基地',
+                        align: 'center',
+                        valign: 'middle',
+                        colspan: 1,
+                        rowspan: 2
+                    },{
+                        field: 'scgy',
+                        title: '生产工艺',
+                        align: 'center',
+                        valign: 'middle',
+                        colspan: 1,
+                        rowspan: 2
+                    },{
+                        field: 'tr',
+                        title: '投入',
+                        align: 'center',
+                        valign: 'middle',
+                        colspan: 5,
+                        rowspan: 1
+                    },{
+                        field: 'sczb',
+                        title: '生产指标',
+                        align: 'center',
+                        valign: 'middle',
+                        colspan: 3,
+                        rowspan: 1
+                    }, {
+                        title: '产出',
+                        field: 'prod',
+                        align: 'center',
+                        valign: 'middle',
+                        colspan: returnValue.length+1,
+                        rowsapn: 1
+                    }],
+
+                ]
+                //3.定义一个空的拼接后台的传回来的field 和 title
+                ouclosdf = [{
+                    field: 'pm', //列ID同时也是指定要显示的数据的ID
+                    title: '品名',
+                    width: 100,
+                    align: 'center',
+                    valign: 'middle',
+                    sortable: true
+                }, {
+                    field: 'ts', //列ID同时也是指定要显示的数据的ID
+                    title: '头数',
+                    width: 100,
+                    align: 'center',
+                    valign: 'middle',
+                    sortable: true
+                }, {
+                    field: 'jz', //列ID同时也是指定要显示的数据的ID
+                    title: '均重',
+                    width: 100,
+                    align: 'center',
+                    valign: 'middle',
+                    sortable: true
+                }, {
+                    field: 'mz', //列ID同时也是指定要显示的数据的ID
+                    title: '毛重',
+                    width: 100,
+                    align: 'center',
+                    valign: 'middle',
+                    sortable: true
+
+                }, {
+                    field: 'jiz', //列ID同时也是指定要显示的数据的ID
+                    title: '净重',
+                    width: 100,
+                    align: 'right',
+                    valign: 'middle',
+                    sortable: true
+                }, {
+                    field: 'bitr', //列ID同时也是指定要显示的数据的ID
+                    title: '边条出品率',
+                    width: 100,
+                    align: 'center',
+                    valign: 'middle',
+                    sortable: true
+                },
+                    {
+                        field: 'batr', //列ID同时也是指定要显示的数据的ID
+                        title: '白条出品率',
+                        width: 100,
+                        align: 'center',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                    {
+                        field: 'ch', //列ID同时也是指定要显示的数据的ID
+                        title: '拆分出品率',
+                        width: 100,
+                        align: 'center',
+                        valign: 'middle',
+                        sortable: true
+                    },
+                ]
+                $.each(returnValue, function(i, item) {
+                    var fieldsss='store' + item.countType;
+                    console.log(fieldsss);
+                    ouclosdf.push({
+                        field: fieldsss,
+                        title: item.name,
+                        align: 'center',
+                        valign: 'middle'
+                    })
+                });
+                ouclosdf.push({
+                    field: 'storeAmount',
+                    title: '合计',
+                    align: 'center',
+                    valign: 'middle',
+
+                })
+
+                //4.把后台的数据push进初始化好的column 中
+                mycolumn.push(ouclosdf)
+
+                //5.加载bootstrapTable
+                $('#tb_departments').bootstrapTable({
+                    url: '/prod/getUnit',         //请求后台的URL（*）
+                    method: 'get',                      //请求方式（*）
+                    toolbar: '#toolbar',                //工具按钮用哪个容器
+                    striped: true,                      //是否显示行间隔色
+                    cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                    pagination: true,                   //是否显示分页（*）
+                    sortable: false,                     //是否启用排序
+                    sortOrder: "asc",                   //排序方式
+                    queryParams: oMassTblInit.queryParams,//传递参数（*）
+                    sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+                    pageNumber:1,                       //初始化加载第一页，默认第一页
+                    pageSize: 200,                       //每页的记录行数（*）
+                    pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+                    search: false,                       //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+                    strictSearch: true,
+                    showColumns: true,                  //是否显示所有的列
+                    showRefresh: true,                  //是否显示刷新按钮
+                    minimumCountColumns: 2,             //最少允许的列数
+                    clickToSelect: true,                //是否启用点击选中行
+                    //height: 500,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+                    uniqueId: "ID",                     //每一行的唯一标识，一般为主键列
+                    showToggle:false,                    //是否显示详细视图和列表视图的切换按钮
+                    cardView: false,                    //是否显示详细视图
+                    detailView: false,                   //是否显示父子表
+                    showExport: true,                     //是否显示导出
+                    exportDataType: "basic",              //basic', 'all', 'selected'.
+                    columns: mycolumn
+                });
+            }
+        });
+    }
+    //得到查询的参数
+    oMassTblInit.queryParams = function (params) {
+        var temp = {   //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+            limit: params.limit,   //页面大小
+            offset: params.offset,  //页码
+            departmentname: $("#txt_search_departmentname").val(),
+            statu: $("#txt_search_statu").val()
+        };
+        return temp;
+    };
+    return oMassTblInit;
+}
+var TableInit = function () {
+    var oTableInit = new Object();
+    //初始化Table
+    oTableInit.Init = function () {
+        $('#tb_departments').bootstrapTable({
+            url: '/prod/getUnit',         //请求后台的URL（*）
+            method: 'get',                      //请求方式（*）
+            toolbar: '#toolbar',                //工具按钮用哪个容器
+            striped: true,                      //是否显示行间隔色
+            cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pagination: true,                   //是否显示分页（*）
+            sortable: false,                     //是否启用排序
+            sortOrder: "asc",                   //排序方式
+            queryParams: oTableInit.queryParams,//传递参数（*）
+            sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+            pageNumber:1,                       //初始化加载第一页，默认第一页
+            pageSize: 200,                       //每页的记录行数（*）
+            pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+            search: false,                       //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            strictSearch: true,
+            showColumns: true,                  //是否显示所有的列
+            showRefresh: true,                  //是否显示刷新按钮
+            minimumCountColumns: 2,             //最少允许的列数
+            clickToSelect: true,                //是否启用点击选中行
+            //height: 500,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+            uniqueId: "ID",                     //每一行的唯一标识，一般为主键列
+            showToggle:false,                    //是否显示详细视图和列表视图的切换按钮
+            cardView: false,                    //是否显示详细视图
+            detailView: false,                   //是否显示父子表
+            showExport: true,                     //是否显示导出
+            exportDataType: "basic",              //basic', 'all', 'selected'.
+            columns: [{
+                checkbox: true
+            }, {
+                field: 'id',
+                title: '部门名称'
+            }, {
+                field: 'name',
+                title: '上级部门'
+            }, {
+                field: 'countType',
+                title: '部门级别'
+            }, ]
+        });
+    };
+    //得到查询的参数
+    oTableInit.queryParams = function (params) {
+        var temp = {   //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+            limit: params.limit,   //页面大小
+            offset: params.offset,  //页码
+            departmentname: $("#txt_search_departmentname").val(),
+            statu: $("#txt_search_statu").val()
+        };
+        return temp;
+    };
+    return oTableInit;
+};
+
+
+var ButtonInit = function () {
+    var oInit = new Object();
+    var postdata = {};
+
+    oInit.Init = function () {
+        //初始化页面上面的按钮事件
+    };
+
+    return oInit;
+};
+$("#btn_query").click(function(){
+    alert("sss");
+    var oTable = new MassTblInit();
+    oTable.Init();
+});
+</script>
+</body>
+</html>
