@@ -2,6 +2,8 @@ package cn.wooyulin.reportplatform.proxy;
 
 /**
  * * 从外部读取，向内部发送信息
+ *
+ * @author 5yl
  */
 import java.io.InputStream;
 import java.io.OutputStream;

@@ -6,7 +6,7 @@ import java.io.OutputStream;
 /**
  * 从内部读取，向外部发送信息
  *
- * @author zxq
+ * @author 5yl
  *
  */
 public class SocketThreadOutput extends Thread {
